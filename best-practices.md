@@ -619,7 +619,7 @@ After migrating to STAC 1.1 this is ideally provided as follows:
       "bands": [
         {
           "name": "r",
-          "eo:common_name": "red",
+          "eo:common_name": "red"
         },
         {
           "name": "g",
