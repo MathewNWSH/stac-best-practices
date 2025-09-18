@@ -10,7 +10,7 @@ This repository contains the STAC Best Practices.
 
 ## STAC Specification
 
-- [General STAC best practices](https://github.com/radiantearth/stac-spec/blob/master/best-practices.md) - will be moved to this repository in the future
+- [General STAC best practices](best-practices.md)
 - [Metadata and Extensions](metadata.md)
 
 ## STAC API Specification
