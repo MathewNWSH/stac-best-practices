@@ -18,11 +18,11 @@ in time some of these may evolve to become part of the core specification.
 
 ## STAC Specification
 
-- [Web Best Practices](web-best-practices.md)
-- [Item Best Practices](item-best-practices.md)
-- [Asset and Link Best Practices](asset-and-link-best-practices.md)
-- [Catalog and Collection Best Practices](catalog-and-collection-best-practices.md)
-- [Metadata and Extension Best Practices](metadata.md)
+- [Web Best Practices](best-practices-web.md)
+- [Item Best Practices](best-practices-item.md)
+- [Asset and Link Best Practices](best-practices-asset-and-link.md)
+- [Catalog and Collection Best Practices](best-practices-catalog-and-collection.md)
+- [Metadata and Extension Best Practices](best-practices-metadata-and-extension.md)
 
 ## STAC API Specification
 
