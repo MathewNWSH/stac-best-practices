@@ -77,12 +77,12 @@ This example demonstrates how the `platform` attribute can be defined as a URI t
 
 ### `storage:refs`
 
-Jest to atrybut imlementowany na poziomie Assetów, zarówno kolekcji jak i itemów, czyli realnych fiznycznych plików lub danych, do których prowadzi katalog. `storage:refs` to lista stringów, a możliwe elementy tej listy to wcześniej zdefiniowane klucze w `storage:schemas`.
+This attribute is implemented at the asset level, for both collections and items—meaning the actual physical files or data that the catalog references. `storage:refs` is a list of strings, where the possible elements are the keys previously defined in `storage:schemas`.
 
-Poniżej przykład w jaki sposob zakmonunikowac uzytkownikowi ze asset jest dostepny na obu ze zdefiniowanych schemas:
+Below is an example of how to communicate to users that an asset is available on multiple defined schemas:
 
 ```json
-    "some_asset": { #asset level implementation
+    "some_asset": { // asset level implementation
       ...
       "href": "s3://...",
       "storage:refs": [
@@ -90,38 +90,146 @@ Poniżej przykład w jaki sposob zakmonunikowac uzytkownikowi ze asset jest dost
         "creodias-s3"
       ],
       ...
-    },
+    }
 ```
 
-W przypadku, gdy wybrany asset jest dostępny tylko u jednego providera:
+When a specific asset is available from only one provider:
 
 ```json
-    "some_other_asset": { #asset level implementation
+    "some_other_asset": { // asset level implementation
       ...
       "href": "s3://...",
       "storage:refs": [
         "aws-s3"
       ],
       ...
-    },
+    }
 ```
 
-Oraz ważny przypadek, **gdy wśród assetów są też assety, które wydawane są przez API, nie zapewniono dostępu via s3**:
+And an important case: **when some assets are served through an API and no S3 access has been provided**:
 
 ```json
-    "yet_another_asset": { #asset level implementation
+    "yet_another_asset": { // asset level implementation
       ...
       "href": "https://...",
-      "storage:refs": [
-      ],
+      "storage:refs": [],
       ...
-    },
+    }
 ```
 
-However, its primary purpose is to describe s3 access that truly matters. For example, it's recommended to consider whether S3 access needs to be highlighted for public bucket URLs pointing to assets like manuals or other PDF files. There's a low likelihood that users will want to access public documentation data via the S3 standard.
+However, its primary purpose is to describe s3 access that truly matters. For example, it's recommended to consider whether S3 access needs to be highlighted for public bucket URLs pointing to assets like manuals or other PDF files. There's a low likelihood that users will want to access public pdf documentation via the S3 standard.
 
-## Value added by combination with other extensions
+## Value Added by Combination with Other Extensions
+
+The Storage Extension can be used as a nested attribute within other extensions or gain broader functionality when combined with other attributes. The most well-known examples of such use cases are the Alternate Assets and Authentication extensions.
+
+### Authentication Extension
+
+The Authentication Extension works in a very similar way to the Storage Extension and serves as its natural complement. While Storage informs users about where the data described by STAC metadata is located, the Authentication Extension explains how to gain access to that data.
+
+In the example below, two authentication schemes are defined: `s3` for S3 bucket access and `oidc` for OpenID Connect authentication. These schemes are then referenced at the asset level using `auth:refs`, working in parallel with `storage:refs` to provide complete access information:
+
+```json
+  ...
+  "properties": { // definition of schemas on properties level
+    "auth:schemes": {
+      "s3": {
+        "type": "s3"
+      },
+      "oidc": {
+        "type": "openIdConnect",
+        "openIdConnectUrl": "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/.well-known/openid-configuration"
+      }
+    },
+    "storage:schemes": {
+      "cdse-s3": {
+        "type": "custom-s3",
+        "title": "Copernicus Data Space Ecosystem S3",
+        "platform": "https://eodata.dataspace.copernicus.eu",
+        "description": "This endpoint provides access to EO data which is stored on the object storage of both CloudFerro Cloud and OpenTelekom Cloud (OTC). See the [documentation](https://documentation.dataspace.copernicus.eu/APIs/S3.html) for more information, including how to get credentials.",
+        "requester_pays": false
+      },
+      "creodias-s3": {
+        "type": "custom-s3",
+        "title": "CREODIAS S3",
+        "platform": "https://eodata.cloudferro.com",
+        "description": "Comprehensive Earth Observation Data (EODATA) archive offered by CREODIAS as a commercial part of CDSE, designed to provide users with access to a vast repository of satellite data without predefined quota limits.",
+        "requester_pays": true
+      }
+    },
+    ...
+  },
+  "assets": { // asset level implementation
+    "damn_another_asset": {
+      "href": "s3://...",
+      ...
+      "auth:refs": [
+        "s3"
+      ],
+      "storage:refs": [
+        "cdse-s3",
+        "creodias-s3"
+      ],
+      ...
+    }
+  }
+```
+
+This combination enables users to understand not only where their data is stored but also what authentication method they need to use to access it.
 
 ### Alternate Assets Extension
 
-### Authentication Extension
+The Alternate Assets Extension allows you to provide multiple access methods for the same asset. This is particularly powerful when combined with the Storage Extension, as it enables you to offer both S3 and HTTPS access to the same data, each with its own storage and authentication configuration.
+
+In the example below, the primary asset is accessible via S3 (referenced by `cdse-s3` and `creodias-s3` storage schemas), while an alternate HTTPS access method is also provided with its own authentication scheme:
+
+```json
+    ...
+    "VV": { // asset level implementation
+      "href": "s3://...",
+      "alternate": {
+        "https": {
+          "href": "https://...",
+          "auth:refs": [
+            "oidc"
+          ],
+          "storage:refs": [],
+          "alternate:name": "HTTPS"
+        }
+      },
+      ...
+      "auth:refs": [
+        "s3"
+      ],
+      "storage:refs": [
+        "cdse-s3",
+        "creodias-s3"
+      ],
+      "alternate:name": "S3"
+    }
+    ...
+```
+
+This pattern is especially useful when:
+
+- You want to provide both direct S3 access for high-performance bulk downloads and HTTPS access for simpler, browser-based access
+- Different access methods have different authentication requirements
+- You offer free and paid tiers with different access protocols
+- Users may have preferences or constraints regarding which protocol they can use
+
+By combining these extensions, you create a comprehensive access specification that gives users full flexibility in how they retrieve their data.
+
+## Further Reading
+
+For manual of the Storage Extension and related extensions, consult the following resources:
+
+### Official Extension Specifications
+
+- [Storage Extension Specification](https://github.com/stac-extensions/storage) - The official specification for the Storage Extension
+- [Authentication Extension Specification](https://github.com/stac-extensions/authentication) - Learn how to specify authentication requirements
+- [Alternate Assets Extension Specification](https://github.com/stac-extensions/alternate-assets) - Provide multiple access methods for the same asset
+
+### Implementation Examples
+
+- [CDSE EO Metadata Tool](https://github.com/eu-cdse/eometadatatool) - Real-world implementation examples from the Copernicus Data Space Ecosystem
+- [CDSE STAC Browser](https://browser.stac.dataspace.copernicus.eu/?.language=en) - Explore CDSE.
