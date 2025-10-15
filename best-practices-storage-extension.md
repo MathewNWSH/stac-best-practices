@@ -1,5 +1,7 @@
 # Storage Extension Best Practices
 
+Written based on [v2.0.0](https://stac-extensions.github.io/storage/v2.0.0/schema.json)
+
 ## Overview of the extension
 
 The Storage Extension is a powerful set of attributes that provides information about the method and environment used to store data whose paths are exposed in a STAC catalog. Its proper implementation enriches href paths with additional context, delivering information about the cloud environment and its characteristics where the actual data is stored. This directly translates to improved user experience, as users gain clarity about their data's location, the service provider being used and the appropriate endpoint to access.
